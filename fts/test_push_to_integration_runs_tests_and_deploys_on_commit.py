@@ -38,7 +38,17 @@ class TestPushToIntegrationRunsTestsAndDeploysOnCommit(TestCase):
         self.run_and_fail_on_error("cp %s %s" % (to_install_hook_file, installed_hook_file))
         self.run_and_fail_on_error("chmod +x %s" % (installed_hook_file,))
 
-        # With a push-to-live that
-        # simply writes the deployable HEAD git ID to a file.
+        # She makes a change to the dev repo such that it has a file called run_integration_tests, which 
+        # is executable and exits with a zero error code.
+        dev_run_integration_tests = os.path.join(dev_dir, "run_integration_tests")
+        with open(dev_run_integration_tests, "w") as f:
+            f.write("#!/bin/bash\nexit 0\n")
+        self.run_and_fail_on_error("chmod +x %s" % (dev_run_integration_tests,))
+
+        # She commits it, and pushes it to integration.
+        self.run_and_fail_on_error("cd %s && git add run_integration_tests && git commit -am'First checkin, with integration testing'" % (dev_dir,))
+        self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
+    
+        # Shortly thereafter, it is promoted to live.
         
         self.fail("TODO")
