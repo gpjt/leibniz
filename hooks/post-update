@@ -18,4 +18,7 @@ run_and_exit_on_error("git clone %s %s" % (repository, integration_dir))
 
 os.chdir(integration_dir)
 
-run_and_exit_on_error("./promote_to_live")
+if subprocess.call("./run_integration_tests"):
+    run_and_exit_on_error("./handle_integration_error")
+else:
+    run_and_exit_on_error("./promote_to_live")

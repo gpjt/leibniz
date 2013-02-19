@@ -44,7 +44,7 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
         self.run_and_fail_on_error("chmod +x %s" % (dev_handle_integration_error,))
 
         # She commits it, and pushes it to integration.
-        self.run_and_fail_on_error("cd %s && git add run_integration_tests && git add promote_to_live && git commit -am'First checkin, with integration testing'" % (dev_dir,))
+        self.run_and_fail_on_error("cd %s && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,))
         self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
 
         # Shortly thereafter, her error script is executed.
