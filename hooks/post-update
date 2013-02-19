@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+import os
+import subprocess
+import sys
+import tempfile
+
+repository = os.getcwd()
+integration_dir = tempfile.mkdtemp()
+
+def run_and_exit_on_error(command):
+    return_code = subprocess.call(command, shell=True)
+    if return_code:
+        exit(1)
+
+
+run_and_exit_on_error("git clone %s %s" % (repository, integration_dir))
+
+os.chdir(integration_dir)
+
+run_and_exit_on_error("./promote_to_live")

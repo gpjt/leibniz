@@ -8,7 +8,7 @@ from unittest import TestCase
 DEFAULT_WAIT_FOR_TIMEOUT = 10
 
 
-class TestPushToIntegrationRunsTestsAndDeploysOnCommit(TestCase):
+class TestPushToIntegrationMasterWithPassingTestsDeploys(TestCase):
 
     def setUp(self):
         self.working_dir = tempfile.mkdtemp()
@@ -62,8 +62,8 @@ class TestPushToIntegrationRunsTestsAndDeploysOnCommit(TestCase):
         self.run_and_fail_on_error("cd %s && git remote add integration %s" % (dev_dir, integration_dir))
 
         # She applies the leibniz hooks to the integration repo
-        to_install_hook_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks", "post-receive"))
-        installed_hook_file = os.path.join(integration_dir, "hooks", "post-receive")
+        to_install_hook_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks", "post-update"))
+        installed_hook_file = os.path.join(integration_dir, "hooks", "post-update")
         self.run_and_fail_on_error("cp %s %s" % (to_install_hook_file, installed_hook_file))
         self.run_and_fail_on_error("chmod +x %s" % (installed_hook_file,))
 
