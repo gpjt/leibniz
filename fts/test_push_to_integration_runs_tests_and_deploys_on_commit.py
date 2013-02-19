@@ -2,7 +2,10 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 from unittest import TestCase
+
+DEFAULT_WAIT_FOR_TIMEOUT = 10
 
 
 class TestPushToIntegrationRunsTestsAndDeploysOnCommit(TestCase):
@@ -19,6 +22,32 @@ class TestPushToIntegrationRunsTestsAndDeploysOnCommit(TestCase):
         return_code = subprocess.call(command, shell=True)
         if return_code:
             self.fail("Error running bash command")
+
+
+    def wait_for(self, condition_function, message_fn_or_str, timeout_seconds=DEFAULT_WAIT_FOR_TIMEOUT, allow_exceptions=False):
+        time_between = min(timeout_seconds / 10.0, 5)
+        start = time.time()
+        end = start + timeout_seconds
+        exception_raised = False
+        tries = 0
+        while tries < 2 or time.time() < end:
+            try:
+                tries += 1
+                if condition_function():
+                    return
+                exception_raised = False
+            except:
+                if not allow_exceptions:
+                    raise
+                exception_raised = True
+            time.sleep(time_between)
+        if exception_raised:
+            raise
+        if isinstance(message_fn_or_str, basestring):
+            message = message_fn_or_str
+        else:
+            message = message_fn_or_str()
+        self.fail("Timeout waiting for condition: %s" % (message,))
 
 
     def test_doesit(self):
@@ -45,10 +74,18 @@ class TestPushToIntegrationRunsTestsAndDeploysOnCommit(TestCase):
             f.write("#!/bin/bash\nexit 0\n")
         self.run_and_fail_on_error("chmod +x %s" % (dev_run_integration_tests,))
 
+        # She also adds a promote_to_live script, which touches a well-known file
+        dev_promote_to_live = os.path.join(dev_dir, "promote_to_live")
+        promoted_to_live_flag_file = os.path.join(self.working_dir, "promoted")
+        with open(dev_promote_to_live, "w") as f:
+            f.write("#!/bin/bash\ntouch %s\nexit 0\n" % (promoted_to_live_flag_file,))
+        self.run_and_fail_on_error("chmod +x %s" % (dev_promote_to_live,))
+
         # She commits it, and pushes it to integration.
-        self.run_and_fail_on_error("cd %s && git add run_integration_tests && git commit -am'First checkin, with integration testing'" % (dev_dir,))
+        self.run_and_fail_on_error("cd %s && git add run_integration_tests && git add promote_to_live && git commit -am'First checkin, with integration testing'" % (dev_dir,))
         self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
     
         # Shortly thereafter, it is promoted to live.
-        
-        self.fail("TODO")
+        def promoted_to_live_flag_file_to_appear():
+            return os.path.exists(promoted_to_live_flag_file)
+        self.wait_for(promoted_to_live_flag_file_to_appear, "%s to appear" % (promoted_to_live_flag_file,))
