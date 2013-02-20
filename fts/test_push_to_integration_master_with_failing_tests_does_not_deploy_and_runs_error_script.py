@@ -1,4 +1,5 @@
 import os
+        import sys
 
 from functionaltest import FunctionalTest
 
@@ -12,6 +13,7 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
         # Harriet creates a working dev and a bare integration environment
         dev_dir = os.path.join(self.working_dir, "dev-dir")
         self.run_and_fail_on_error("mkdir -p %s && cd %s && git init" % (dev_dir, dev_dir))
+        print >> sys.stderr, "After create, dev dir is", dev_dir, " and has ", os.listdir(dev_dir)
 
         integration_dir = os.path.join(self.working_dir, "integration-dir")
         self.run_and_fail_on_error("mkdir -p %s && cd %s && git init --bare" % (integration_dir, integration_dir))
@@ -47,7 +49,6 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
         self.run_and_fail_on_error("chmod +x %s" % (dev_handle_integration_error,))
 
         # She commits it, and pushes it to integration.
-        import sys
         print >> sys.stderr, "About to run", "cd %s && pwd && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,)
         self.run_and_fail_on_error("cd %s && pwd && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,))
         self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
