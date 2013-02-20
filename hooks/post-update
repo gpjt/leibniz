@@ -23,6 +23,4 @@ try:
     run_and_exit_on_error("./promote_to_live")
 except subprocess.CalledProcessError, e:
     process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE)
-    print "About to write " + e.output
     process.communicate(e.output)
-    print "Done"
