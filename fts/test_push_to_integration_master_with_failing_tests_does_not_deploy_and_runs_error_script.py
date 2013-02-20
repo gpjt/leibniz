@@ -1,20 +1,14 @@
 import os
-import sys
 
 from functionaltest import FunctionalTest
 
 
 class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript(FunctionalTest):
 
-    def tearDown(self):
-        pass
-
     def test_doesit(self):
         # Harriet creates a working dev and a bare integration environment
-	print >> sys.stderr, os.environ
         dev_dir = os.path.join(self.working_dir, "dev-dir")
         self.run_and_fail_on_error("mkdir -p %s && cd %s && git init" % (dev_dir, dev_dir))
-        print >> sys.stderr, "After create, dev dir is", dev_dir, " and has ", os.listdir(dev_dir)
 
         integration_dir = os.path.join(self.working_dir, "integration-dir")
         self.run_and_fail_on_error("mkdir -p %s && cd %s && git init --bare" % (integration_dir, integration_dir))
@@ -46,27 +40,21 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
         dev_handle_integration_error = os.path.join(dev_dir, "handle_integration_error")
         handle_integration_error_flag_file = os.path.join(self.working_dir, "error")
         with open(dev_handle_integration_error, "w") as f:
-            f.write("#!/bin/bash\ncat > %s\nexit 0\n" % (handle_integration_error_flag_file,))
+            f.write(
+                "#!/bin/bash\necho git dir is x${GIT_DIR}x > %s\ncat >> %s\nexit 0\n" % (
+                    handle_integration_error_flag_file, handle_integration_error_flag_file,
+                )
+            )
         self.run_and_fail_on_error("chmod +x %s" % (dev_handle_integration_error,))
 
         # She commits it, and pushes it to integration.
-        print >> sys.stderr, "About to run", "cd %s && pwd && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,)
         self.run_and_fail_on_error("cd %s && pwd && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,))
         self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
 
         # Shortly thereafter, her error script is executed.
-        def handle_integration_error_flag_file_to_appear():
-            return os.path.exists(handle_integration_error_flag_file)
-        self.wait_for(handle_integration_error_flag_file_to_appear, "%s to appear" % (handle_integration_error_flag_file_to_appear,))
-        # It received the standard output of the integration run as its standard input
-        with open(handle_integration_error_flag_file, "r") as f:
-            contents = ""
-            while True:
-                data = f.read()
-                if not data:
-                    break
-                contents += data
-        self.assertEqual("Oh noes!\nIt b0rked.\n", contents)
+        # It received the standard output of the integration run as its standard input, and had the 
+        # expected environment
+        self.wait_for_file_to_have_contents("git dir is xx\nOh noes!\nIt b0rked.\n", handle_integration_error_flag_file)
 
         # She confirms that it was not promoted to live.
         self.assertFalse(os.path.exists(promoted_to_live_flag_file))

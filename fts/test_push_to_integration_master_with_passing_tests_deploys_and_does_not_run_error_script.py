@@ -23,17 +23,18 @@ class TestPushToIntegrationMasterWithPassingTestsDeploys(FunctionalTest):
         self.run_and_fail_on_error("chmod +x %s" % (installed_hook_file,))
 
         # She makes a change to the dev repo such that it has a file called run_integration_tests, which 
-        # is executable and exits with a zero error code.
+        # is executable, logs some details about the environment it is run with, and exits with a zero error code.
         dev_run_integration_tests = os.path.join(dev_dir, "run_integration_tests")
+        run_integration_tests_flag_file = os.path.join(self.working_dir, "integration_tests")
         with open(dev_run_integration_tests, "w") as f:
-            f.write("#!/bin/bash\nexit 0\n")
+            f.write("#!/bin/bash\necho git dir is x${GIT_DIR}x > %s\nexit 0\n" % (run_integration_tests_flag_file,))
         self.run_and_fail_on_error("chmod +x %s" % (dev_run_integration_tests,))
 
-        # She also adds a promote_to_live script, which touches a well-known file
+        # She also adds a promote_to_live script, which also logs some deta about its environemtn to a well-known file
         dev_promote_to_live = os.path.join(dev_dir, "promote_to_live")
         promoted_to_live_flag_file = os.path.join(self.working_dir, "promoted")
         with open(dev_promote_to_live, "w") as f:
-            f.write("#!/bin/bash\ntouch %s\nexit 0\n" % (promoted_to_live_flag_file,))
+            f.write("#!/bin/bash\necho git dir is x${GIT_DIR}x > %s\nexit 0\n" % (promoted_to_live_flag_file,))
         self.run_and_fail_on_error("chmod +x %s" % (dev_promote_to_live,))
 
         # And she adds an error script, which also touches a well-known file.
@@ -46,11 +47,12 @@ class TestPushToIntegrationMasterWithPassingTestsDeploys(FunctionalTest):
         # She commits it, and pushes it to integration.
         self.run_and_fail_on_error("cd %s && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,))
         self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
+
+        # After a while, the integration tests are run, with the cofrect environment.
+        self.wait_for_file_to_have_contents("git dir is xx\n", run_integration_tests_flag_file)
     
         # Shortly thereafter, it is promoted to live.
-        def promoted_to_live_flag_file_to_appear():
-            return os.path.exists(promoted_to_live_flag_file)
-        self.wait_for(promoted_to_live_flag_file_to_appear, "%s to appear" % (promoted_to_live_flag_file,))
+        self.wait_for_file_to_have_contents("git dir is xx\n", promoted_to_live_flag_file)
 
         # The error script was not run
         self.assertFalse(os.path.exists(handle_integration_error_flag_file))

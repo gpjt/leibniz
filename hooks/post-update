@@ -8,8 +8,11 @@ import tempfile
 repository = os.getcwd()
 integration_dir = tempfile.mkdtemp()
 
-def run_and_exit_on_error(command):
-    return_code = subprocess.call(command, shell=True)
+modified_env = dict(os.environ)
+del modified_env['GIT_DIR']
+
+def run_and_exit_on_error(command, **kwargs):
+    return_code = subprocess.call(command, shell=True, **kwargs)
     if return_code:
         exit(1)
 
@@ -19,8 +22,8 @@ run_and_exit_on_error("git clone %s %s" % (repository, integration_dir))
 os.chdir(integration_dir)
 
 try:
-    subprocess.check_output("./run_integration_tests")
-    run_and_exit_on_error("./promote_to_live")
+    subprocess.check_output("./run_integration_tests", env=modified_env)
+    run_and_exit_on_error("./promote_to_live", env=modified_env)
 except subprocess.CalledProcessError, e:
-    process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE)
+    process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE, env=modified_env)
     process.communicate(e.output)
