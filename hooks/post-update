@@ -18,7 +18,11 @@ run_and_exit_on_error("git clone %s %s" % (repository, integration_dir))
 
 os.chdir(integration_dir)
 
-if subprocess.call("./run_integration_tests"):
-    run_and_exit_on_error("./handle_integration_error")
-else:
+try:
+    subprocess.check_output("./run_integration_tests")
     run_and_exit_on_error("./promote_to_live")
+except subprocess.CalledProcessError, e:
+    process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE)
+    print "About to write " + e.output
+    process.communicate(e.output)
+    print "Done"

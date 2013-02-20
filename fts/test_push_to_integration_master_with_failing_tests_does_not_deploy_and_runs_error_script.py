@@ -36,11 +36,11 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
             f.write("#!/bin/bash\ntouch %s\nexit 0\n" % (promoted_to_live_flag_file,))
         self.run_and_fail_on_error("chmod +x %s" % (dev_promote_to_live,))
 
-        # And she adds an error script, which also touches a well-known file.
+        # And she adds an error script, which writes its input to a well-known file.
         dev_handle_integration_error = os.path.join(dev_dir, "handle_integration_error")
         handle_integration_error_flag_file = os.path.join(self.working_dir, "error")
         with open(dev_handle_integration_error, "w") as f:
-            f.write("#!/bin/bash\ntouch %s\nexit 0\n" % (handle_integration_error_flag_file,))
+            f.write("#!/bin/bash\ncat > %s\necho Written...\ncat %s\necho ...\nexit 0\n" % (handle_integration_error_flag_file, handle_integration_error_flag_file))
         self.run_and_fail_on_error("chmod +x %s" % (dev_handle_integration_error,))
 
         # She commits it, and pushes it to integration.
