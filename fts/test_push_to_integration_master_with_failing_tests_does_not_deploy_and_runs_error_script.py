@@ -11,7 +11,7 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
 
     def test_doesit(self):
         # Harriet creates a working dev and a bare integration environment
-	print >> sys.stderr, os.env
+	print >> sys.stderr, os.environ
         dev_dir = os.path.join(self.working_dir, "dev-dir")
         self.run_and_fail_on_error("mkdir -p %s && cd %s && git init" % (dev_dir, dev_dir))
         print >> sys.stderr, "After create, dev dir is", dev_dir, " and has ", os.listdir(dev_dir)
