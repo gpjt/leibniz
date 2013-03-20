@@ -1,7 +1,11 @@
 #!/bin/bash
 echo About to promote to live.
+echo first param is $1
 cd $1
+echo done cd, about to pwd
 pwd
+echo pwded, about to cat config
 cat config
+echo catted, about to push
 git push origin master
 echo Promoted
