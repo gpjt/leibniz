@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "Subject: Integration error in `pwd`"
+echo "From: giles-001@gmail.com"
+echo 
+
+while read x
+do
+  echo "$x"
+done

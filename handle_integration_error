@@ -1,2 +1,2 @@
 #!/bin/bash
-touch /tmp/error
+./generate_integration_error_email | msmtp giles@giles.net
