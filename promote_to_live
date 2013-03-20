@@ -8,4 +8,4 @@ echo pwded, about to cat config
 cat config
 echo catted, about to push
 git push origin master
-echo Promoted
+echo Promoted, all done.
