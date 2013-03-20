@@ -1,5 +1,6 @@
 #!/bin/bash
 echo About to promote to live.
+cd $1
 pwd
 cat config
 git push origin master

@@ -30,11 +30,13 @@ class TestPushToIntegrationMasterWithPassingTestsDeploys(FunctionalTest):
             f.write("#!/bin/bash\necho git dir is x${GIT_DIR}x > %s\nexit 0\n" % (run_integration_tests_flag_file,))
         self.run_and_fail_on_error("chmod +x %s" % (dev_run_integration_tests,))
 
-        # She also adds a promote_to_live script, which also logs some deta about its environemtn to a well-known file
+        # She also adds a promote_to_live script, which also logs some deta about its environment and parameters to a well-known file
         dev_promote_to_live = os.path.join(dev_dir, "promote_to_live")
         promoted_to_live_flag_file = os.path.join(self.working_dir, "promoted")
         with open(dev_promote_to_live, "w") as f:
-            f.write("#!/bin/bash\necho git dir is x${GIT_DIR}x > %s\nexit 0\n" % (promoted_to_live_flag_file,))
+            f.write("#!/bin/bash\necho git dir is x${GIT_DIR}x > %s\necho first param is x${1}x >> %s\nexit 0\n" % (
+                promoted_to_live_flag_file, promoted_to_live_flag_file
+            ))
         self.run_and_fail_on_error("chmod +x %s" % (dev_promote_to_live,))
 
         # And she adds an error script, which also touches a well-known file.
@@ -52,7 +54,7 @@ class TestPushToIntegrationMasterWithPassingTestsDeploys(FunctionalTest):
         self.wait_for_file_to_have_contents("git dir is xx\n", run_integration_tests_flag_file)
     
         # Shortly thereafter, it is promoted to live.
-        self.wait_for_file_to_have_contents("git dir is xx\n", promoted_to_live_flag_file)
+        self.wait_for_file_to_have_contents("git dir is xx\nfirst param is x%sx\n" % (integration_dir,), promoted_to_live_flag_file)
 
         # The error script was not run
         self.assertFalse(os.path.exists(handle_integration_error_flag_file))

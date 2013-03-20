@@ -23,7 +23,7 @@ os.chdir(integration_dir)
 
 try:
     subprocess.check_output("./run_integration_tests", env=modified_env)
-    run_and_exit_on_error("./promote_to_live", env=modified_env)
+    run_and_exit_on_error("./promote_to_live %s" % (repository,), env=modified_env)
 except subprocess.CalledProcessError, e:
     process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE, env=modified_env)
     process.communicate(e.output)
