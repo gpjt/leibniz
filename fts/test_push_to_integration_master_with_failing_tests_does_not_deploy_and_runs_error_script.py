@@ -26,7 +26,7 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
         # is executable and exits with a non-zzero error code.
         dev_run_integration_tests = os.path.join(dev_dir, "run_integration_tests")
         with open(dev_run_integration_tests, "w") as f:
-            f.write("#!/bin/bash\necho Oh noes!\necho It b0rked.\nexit 1\n")
+            f.write("#!/bin/bash\necho Oh noes!\necho It b0rked.\necho Some standard error stuff 1>&2\nexit 1\n")
         self.run_and_fail_on_error("chmod +x %s" % (dev_run_integration_tests,))
 
         # She also adds a promote_to_live script, which touches a well-known file
@@ -54,7 +54,7 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
         # Shortly thereafter, her error script is executed.
         # It received the standard output of the integration run as its standard input, and had the 
         # expected environment
-        self.wait_for_file_to_have_contents("git dir is xx\nOh noes!\nIt b0rked.\n", handle_integration_error_flag_file)
+        self.wait_for_file_to_have_contents("git dir is xx\nOh noes!\nIt b0rked.\nSome standard error stuff\n", handle_integration_error_flag_file)
 
         # She confirms that it was not promoted to live.
         self.assertFalse(os.path.exists(promoted_to_live_flag_file))

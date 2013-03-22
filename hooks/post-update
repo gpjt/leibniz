@@ -22,7 +22,7 @@ run_and_exit_on_error("git clone %s %s" % (repository, integration_dir))
 os.chdir(integration_dir)
 
 try:
-    subprocess.check_output("./run_integration_tests", env=modified_env)
+    subprocess.check_output("./run_integration_tests", env=modified_env, stderr=subprocess.STDOUT)
     run_and_exit_on_error("./promote_to_live %s" % (repository,), env=modified_env)
 except subprocess.CalledProcessError, e:
     process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE, env=modified_env)
