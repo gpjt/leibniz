@@ -21,9 +21,10 @@ class FunctionalTest(TestCase):
 
 
     def run_and_fail_on_error(self, command):
-        return_code = subprocess.call(command, shell=True)
-        if return_code:
-            self.fail("Error running bash command")
+        try:
+            return subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError, e:
+            self.fail("Error running bash command; output was %r" % (e.output,))
 
 
     def wait_for(self, condition_function, message_fn_or_str, timeout_seconds=DEFAULT_WAIT_FOR_TIMEOUT, allow_exceptions=False):

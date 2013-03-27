@@ -48,7 +48,10 @@ class TestPushToIntegrationMasterWithPassingTestsDeploys(FunctionalTest):
 
         # She commits it, and pushes it to integration.
         self.run_and_fail_on_error("cd %s && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,))
-        self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
+        output = self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
+
+        # She does not get an error message.
+        self.assertNotIn("TESTS FAILED!  Will not deploy", output)
 
         # After a while, the integration tests are run, with the cofrect environment.
         self.wait_for_file_to_have_contents("git dir is xx\n", run_integration_tests_flag_file)

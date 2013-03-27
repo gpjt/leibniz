@@ -49,7 +49,10 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
 
         # She commits it, and pushes it to integration.
         self.run_and_fail_on_error("cd %s && pwd && git add run_integration_tests && git add promote_to_live && git add handle_integration_error && git commit -am'First checkin, with integration testing'" % (dev_dir,))
-        self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
+        output = self.run_and_fail_on_error("cd %s && git push integration master" % (dev_dir,))
+
+        # She gets an error message.
+        self.assertIn("TESTS FAILED!  Will not deploy", output)
 
         # Shortly thereafter, her error script is executed.
         # It received the standard output of the integration run as its standard input, and had the 
