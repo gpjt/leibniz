@@ -6,7 +6,6 @@ from functionaltest import FunctionalTest
 class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript(FunctionalTest):
 
     def test_doesit(self):
-        self.fail("Another test of error output")
         # Harriet creates a working dev and a bare integration environment
         dev_dir = os.path.join(self.working_dir, "dev-dir")
         self.run_and_fail_on_error("mkdir -p %s && cd %s && git init" % (dev_dir, dev_dir))
