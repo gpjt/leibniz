@@ -25,6 +25,7 @@ try:
     subprocess.check_output("./run_integration_tests", env=modified_env, stderr=subprocess.STDOUT)
     run_and_exit_on_error("./promote_to_live %s" % (repository,), env=modified_env)
 except subprocess.CalledProcessError, e:
+    print >> sys.stderr, e.output
     print >> sys.stderr, "TESTS FAILED!  Will not deploy"
     process = subprocess.Popen("./handle_integration_error", stdin=subprocess.PIPE, env=modified_env)
     process.communicate(e.output)

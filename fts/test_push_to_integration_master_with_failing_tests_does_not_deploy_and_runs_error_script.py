@@ -53,11 +53,15 @@ class TestPushToIntegrationMasterWithFailingTestsDoesNotDeployAndRunsErrorScript
 
         # She gets an error message.
         self.assertIn("TESTS FAILED!  Will not deploy", output)
+ 
+        # It includes the results of running the FTs (with "remote: " tacked on the start of each line and some vt100 nonsense at the end)
+        expected_output_from_fts = "Oh noes!\nIt b0rked.\nSome standard error stuff"
+        self.assertIn("\n".join(("remote: %s\x1b[K" % (line,)) for line in expected_output_from_fts.split("\n")), output)
 
         # Shortly thereafter, her error script is executed.
         # It received the standard output of the integration run as its standard input, and had the 
         # expected environment
-        self.wait_for_file_to_have_contents("git dir is xx\nOh noes!\nIt b0rked.\nSome standard error stuff\n", handle_integration_error_flag_file)
+        self.wait_for_file_to_have_contents("git dir is xx\n%s\n" % (expected_output_from_fts,), handle_integration_error_flag_file)
 
         # She confirms that it was not promoted to live.
         self.assertFalse(os.path.exists(promoted_to_live_flag_file))
